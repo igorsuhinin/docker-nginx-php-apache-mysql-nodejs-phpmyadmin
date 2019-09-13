@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  php:
+    env_file: .env
+    build:
+      context: ./etc/php
+    container_name: ${APP_NAME}_php
+    entrypoint: sh /bin/entrypoint.sh php-fpm
+    restart: always
+    volumes:
+      - "./etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
+      - "./etc/php/entrypoint.sh:/bin/entrypoint.sh"
+      - ${APP_PATH}:/var/www
+    links:
+      - db:mysql
+    expose:
+      - 9000
+  db:
+    image: mysql:8
+    container_name: ${APP_NAME}_db
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - "./etc/db/data:/var/lib/mysql"
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-authentication-plugin=mysql_native_password'
+    ]
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: ${APP_NAME}_pma
+    ports:
+      - 5426:80
+    links:
+      - db:db
+    depends_on:
+      - db
+  nodejs:
+    env_file: .env
+    build: ./etc/nodejs
+    container_name: ${APP_NAME}_nodejs
+    restart: "no"
+    entrypoint: sh /bin/entrypoint.sh
+    volumes:
+      - ${APP_PATH}:/var/www/html
+      - ./etc/nodejs/entrypoint.sh:/bin/entrypoint.sh
+  apache:
+    env_file: .env
+    build: ./etc/httpd
+    volumes:
+      - "./etc/httpd/httpd.conf:/usr/local/apache2/conf/httpd.conf"
+      - ${APP_PATH}:/var/www
+    depends_on:
+      - php
+    expose:
+      - 8080
+  web:
+    env_file: .env
+    build: etc/nginx
+    container_name: ${APP_NAME}_nginx
+    ports:
+      - 80:80
+    restart: always
+    volumes:
+      - "./etc/nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "./etc/nginx/app.conf:/etc/nginx/sites-available/application.conf"
+      - "./etc/nginx/app.conf:/etc/nginx/sites-enabled/application"
+      - "./etc/log/nginx:/var/log/nginx"
+      - ${APP_PATH}:/var/www
+    depends_on:
+      - apache
