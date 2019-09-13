@@ -72,7 +72,7 @@ To log in to the container you can use one of the following commands
  
  - PHP: `docker-compose exec php sh`
  
- - Apache: `docker-compose exec apache sh`
+ - APACHE: `docker-compose exec apache sh`
  
  - MYSQL: `docker-compose exec db sh`
  
