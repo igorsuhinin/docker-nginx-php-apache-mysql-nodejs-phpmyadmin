@@ -1,1 +1,7 @@
-.idea
+/.idea
+/etc/log/nginx/
+/etc/db/data/
+!/etc/db/data/.gitkeep
+!/etc/log/nginx/.gitkeep
+
+.env.*

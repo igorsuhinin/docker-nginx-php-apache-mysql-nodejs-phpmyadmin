@@ -1,0 +1,38 @@
+version: '3'
+
+services:
+  php:
+    build:
+      context: ./../../
+      dockerfile: ./etc/php/Dockerfile
+    image: docker-php-local
+
+  db:
+    build:
+      context: ./../../
+      dockerfile: ./etc/db/Dockerfile
+    image: docker-db-local
+
+  phpmyadmin:
+    build:
+      context: ./../../
+      dockerfile: ./etc/phpmyadmin/Dockerfile
+    image: docker-phpmyadmin-local
+
+  nodejs:
+    build:
+      context: ./../../
+      dockerfile: ./etc/nodejs/Dockerfile
+    image: docker-nodejs-local
+
+  apache:
+    build:
+      context: ./../../
+      dockerfile: ./etc/httpd/Dockerfile
+    image: docker-apache-local
+
+  nginx:
+    build:
+      context: ./../../
+      dockerfile: ./etc/nginx/Dockerfile
+    image: docker-nginx-local
