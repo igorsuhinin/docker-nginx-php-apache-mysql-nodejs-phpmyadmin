@@ -1,0 +1,66 @@
+version: '3.6'
+
+services:
+  php:
+    env_file:
+      - "../../.env"
+    image: docker-php-local
+    entrypoint: sh /entrypoint.sh php-fpm
+    restart: "no"
+    volumes:
+      - ../../${APP_PATH}:/var/www
+
+  db:
+    env_file:
+      - "../../.env"
+    image: docker-db-local
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+    restart: "no"
+    volumes:
+      - "../db/data:/var/lib/mysql"
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-authentication-plugin=caching_sha2_password'
+    ]
+
+  phpmyadmin:
+    image: docker-phpmyadmin-local
+    links:
+      - db:db
+    depends_on:
+      - db
+
+  nodejs:
+    image: docker-nodejs-local
+    restart: "no"
+    entrypoint: sh /bin/entrypoint.sh
+    volumes:
+      - ../../${APP_PATH}:/var/www/html
+      - ../nodejs/entrypoint.sh:/bin/entrypoint.sh
+
+  apache:
+    image: docker-apache-local
+    volumes:
+      - ../../${APP_PATH}:/var/www
+    depends_on:
+      - php
+
+  nginx:
+    image: docker-nginx-local
+    restart: "no"
+    volumes:
+      - "../nginx/nginx.conf:/etc/nginx/nginx.conf"
+      - "../nginx/app.conf:/etc/nginx/sites-available/application.conf"
+      - "../nginx/app.conf:/etc/nginx/sites-enabled/application"
+      - "../log/nginx:/var/log/nginx"
+      - ../../${APP_PATH}:/var/www
+    ports:
+      - "80:80"
+      - "81:81"
+    depends_on:
+      - apache
